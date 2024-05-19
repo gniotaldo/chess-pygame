@@ -51,6 +51,7 @@ class Figure:
         self.board = None
         self.moves = 0
         self.is_last_move = False
+        self.pawn_long_move = False
 
     def set_board(self, board):
         self.board = board
@@ -72,9 +73,11 @@ class Figure:
                     else:
                         continue
                 else:
-                    if self.color == Tile.TileColor.White and  self.board.grid[x][y+1].content and self.board.grid[x][y+1].content == previous_piece:
+                    piece: Figure = self.board.grid[x][y+1].content
+                    if self.color == Tile.TileColor.White and piece and piece == previous_piece and piece.figureType == self.FigureType.Pawn and piece.pawn_long_move:
                         legal_moves.append(Vector2(x,y))
-                    if self.color == Tile.TileColor.Black and  self.board.grid[x][y-1].content and self.board.grid[x][y-1].content == previous_piece:
+                    piece: Figure = self.board.grid[x][y-1]
+                    if self.color == Tile.TileColor.Black and  piece and piece == previous_piece and piece.figureType == self.FigureType.Pawn and piece.pawn_long_move:
                         legal_moves.append(Vector2(x,y))
 
                     else:
@@ -107,10 +110,10 @@ class Figure:
                 self.legal_moves = [Vector2(4,4)]
 
 
-    def move(self, x, y, white_captured, black_captured, previous_piece):
+    def move(self, x, y, white_captured, black_captured):
         old_x = int(self.position.x)
         old_y = int(self.position.y)
-        print(f"ruszam z: {chr(old_x + 97)}{8 - old_y} do {chr(x + 97)}{8 - y}")
+        print(f"moves from : {chr(old_x + 97)}{8 - old_y} to {chr(x + 97)}{8 - y}")
 
         if self.board.grid[x][y].content:
             self.capture(x, y, white_captured, black_captured)
@@ -126,6 +129,11 @@ class Figure:
         self.board.grid[x][y].content = self
         self.position.x = x
         self.position.y = y
+        if abs(y-old_y) > 1 and self.figureType == self.FigureType.Pawn:
+            self.pawn_long_move = True
+        else:
+            self.pawn_long_move = False
+
         self.moves += 1
 
 

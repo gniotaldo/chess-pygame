@@ -64,13 +64,13 @@ if __name__ == '__main__':
                             x = 7-x
                             y = 7-y
                         if 0 <= x <= 7 and 0 <= y <= y:
-                            print(f"kliknieto w: {chr(x + 97)}{8-y}")
+                            print(f"clicked: {chr(x + 97)}{8-y}")
                             figure: Figure = board.grid[x][y].content
 
 
                             #move piece
                             if active_piece and Vector2(x,y) in active_piece.legal_moves:
-                                active_piece.move(x,y, white_captured, black_captured, previous_piece)
+                                active_piece.move(x,y, white_captured, black_captured)
                                 active_piece.active = False
                                 active_piece.is_last_move = True
                                 if previous_piece:
@@ -80,7 +80,6 @@ if __name__ == '__main__':
 
                             #select piece
                             elif figure:
-                                print(f"kliknieto w figure: {figure.figureType.value}")
                                 figure.active = not figure.active
                                 figure.activeAnimation = True
                                 active_piece_button.text = figure.color.name + " " + figure.figureType.value
