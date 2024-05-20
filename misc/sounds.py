@@ -2,5 +2,6 @@ import pygame
 
 pygame.mixer.init()
 
-move_sound= pygame.mixer.Sound("sounds/move.wav")
-capture_sound= pygame.mixer.Sound("sounds/capture.wav")
+move_sound = pygame.mixer.Sound("sounds/move.wav")
+capture_sound = pygame.mixer.Sound("sounds/capture.wav")
+castling_sound = pygame.mixer.Sound("sounds/castle.wav")
