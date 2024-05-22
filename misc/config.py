@@ -12,4 +12,7 @@ timer = pygame.time.Clock()
 fps = 60
 run = True
 
+ENGINE_PATH = "./stockfish/stockfish-windows-x86-64-sse41-popcnt.exe"
+AI_LEVEL = 1 #0-20
+
 

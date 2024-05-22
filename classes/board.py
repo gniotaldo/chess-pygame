@@ -30,7 +30,7 @@ class Board:
         self.width = width
         self.height = height
         self.tile_size = tile_size
-        self.grid: list[list[Tile]] = [[Tile(Tile.TileColor.Black, j, i, pieces) if ((i+j) % 2 == 1) else Tile(Tile.TileColor.White, j, i, pieces) for i in range(8)] for j in range(8)]
+        self.grid: list[list[Tile]] = None
         #self.tiles: list[Tile] = [self.grid[i][j] for i in range (8) for j in range (8)]
         self.color_map = {
             'Black': (115, 77, 38),
@@ -73,4 +73,3 @@ class Board:
             
             text_surface = font.render(str(j + 1), True, self.grid[7][index].color.value) 
             screen.blit(text_surface, (x, y)) 
-

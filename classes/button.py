@@ -1,6 +1,8 @@
 import pygame
 from misc.config import WIDTH, HEIGHT
 from classes.board import Tile
+from classes.figure import Figure
+from misc.images import *
 
 class Button:
     def __init__(self, x, y, width, height, text, color, hover_color, text_color, show_hover, function=None):
@@ -54,3 +56,22 @@ class Button:
             self.function()
 
 
+
+
+rotate_button = Button(WIDTH+20, 50, 150, 50, "Rotate Board", (0, 255, 0), (0, 200, 0), (0, 0, 0), True, None)
+active_piece_button = Button(WIDTH+20, 150, 100, 50, " ", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None)
+eval_button = Button(WIDTH+40, 250, 100, 50, "Evaluation: 0.3", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None)
+promotion_queen = Button(125, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
+promotion_rook = Button(275, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
+promotion_knight = Button(425, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
+promotion_bishop = Button(575, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
+promotion_queen.images = [white_queen_img, black_queen_img]
+promotion_queen.piece = Figure.FigureType.Queen
+promotion_rook.images = [white_rook_img, black_rook_img]
+promotion_rook.piece = Figure.FigureType.Rook
+promotion_bishop.images = [white_bishop_img, black_bishop_img]
+promotion_bishop.piece = Figure.FigureType.Bishop
+promotion_knight.images = [white_knight_img, black_knight_img]
+promotion_knight.piece = Figure.FigureType.Knight
+promotion_choice  = [promotion_bishop, promotion_knight, promotion_queen, promotion_rook]
+game_over_button = Button(325, 350, 100, 100, "Play again", (0, 255, 0), (0, 200, 0), (0, 0, 0), True, None)

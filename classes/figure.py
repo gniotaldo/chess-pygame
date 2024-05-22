@@ -328,32 +328,30 @@ class Figure:
     def is_check(self, new_position: Vector2):
 
         #copy world
-        temp_board = deepcopy(self.board)
-        temp_self = deepcopy(self)
-        attacked_tiles = []
-        temp_board.grid[int(temp_self.position.x)][int(temp_self.position.y)].content = None
-        temp_board.grid[int(new_position.x)][int(new_position.y)].content = temp_self
-        temp_self.position = new_position
-        my_king_position = None
-        if temp_self.figureType == temp_self.FigureType.King:
-            my_king_position = temp_self.position
+        if self.position != Vector2(8,8):
+            temp_board = deepcopy(self.board)
+            temp_self = deepcopy(self)
+            attacked_tiles = []
+            temp_board.grid[int(temp_self.position.x)][int(temp_self.position.y)].content = None
+            temp_board.grid[int(new_position.x)][int(new_position.y)].content = temp_self
+            temp_self.position = new_position
+            my_king_position = None
+            if temp_self.figureType == temp_self.FigureType.King:
+                my_king_position = temp_self.position
 
-        #find attacked positions in alt world
-        for row in temp_board.grid:
-            for tile in row:
-                piece: Figure = tile.content
-                if piece and piece.color != temp_self.color:
-                    piece.get_legal_moves(temp_self)
-                    for attacked_tile in piece.legal_moves:
-                        attacked_tiles.append(attacked_tile)
-                #find our color king
-                if not my_king_position and piece and piece.color == temp_self.color and piece.figureType == piece.FigureType.King:
-                    my_king_position = piece.position
-        return my_king_position in attacked_tiles
-        
-
-
-
+            #find attacked positions in alt world
+            for row in temp_board.grid:
+                for tile in row:
+                    piece: Figure = tile.content
+                    if piece and piece.color != temp_self.color:
+                        piece.get_legal_moves(temp_self)
+                        for attacked_tile in piece.legal_moves:
+                            attacked_tiles.append(attacked_tile)
+                    #find our color king
+                    if not my_king_position and piece and piece.color == temp_self.color and piece.figureType == piece.FigureType.King:
+                        my_king_position = piece.position
+            return my_king_position in attacked_tiles
+        return False
 
 
     def move(self, x, y, white_captured, black_captured):
@@ -361,30 +359,27 @@ class Figure:
         played_sound = False
         old_x = int(self.position.x)
         old_y = int(self.position.y)
-        #print(f"moves from : {chr(old_x + 97)}{8 - old_y} to {chr(x + 97)}{8 - y}")
-
-        #capture
         if self.board.grid[x][y].content:
             self.capture(x, y, white_captured, black_captured)
             capture_sound.play()
 
         #en passant
-        if self.figureType == self.FigureType.Pawn:
+        elif self.figureType == self.FigureType.Pawn:
             if self.color == Tile.TileColor.White and int(self.position.x) != x:
                 if self.board.grid[x][y+1].content:
                     en_passant_piece: Figure =  self.board.grid[x][y+1].content 
-                    if en_passant_piece and en_passant_piece.pawn_long_move == True:
+                    if en_passant_piece and en_passant_piece.pawn_long_move  and en_passant_piece.is_last_move:
                         self.capture(x, y+1, white_captured, black_captured)
                         capture_sound.play()
             elif self.color == Tile.TileColor.Black and int(self.position.x) != x:
                 if self.board.grid[x][y-1].content:
                     en_passant_piece: Figure =  self.board.grid[x][y-1].content 
-                    if en_passant_piece and en_passant_piece.pawn_long_move:
+                    if en_passant_piece and en_passant_piece.pawn_long_move  and en_passant_piece.is_last_move:
                         self.capture(x, y-1, white_captured, black_captured)
                         capture_sound.play()
 
         #castling
-        if self.figureType == self.FigureType.King and abs(self.position.x - x) >= 2:
+        elif self.figureType == self.FigureType.King and abs(self.position.x - x) >= 2:
             #long castling
             if self.position.x > x:
                 self.board.grid[int(self.position.x)][int(self.position.y)].content = None
@@ -511,11 +506,11 @@ class Figure:
 white_rook1 = Figure(Figure.FigureType.Rook, Tile.TileColor.White, Vector2(0,7))
 white_rook2 = Figure(Figure.FigureType.Rook, Tile.TileColor.White, Vector2(7,7))
 
-white_bishop1 = Figure(Figure.FigureType.Bishop, Tile.TileColor.White, Vector2(1,7))
-white_bishop2 = Figure(Figure.FigureType.Bishop, Tile.TileColor.White, Vector2(6,7))
+white_knight1 = Figure(Figure.FigureType.Knight, Tile.TileColor.White, Vector2(1,7))
+white_knight2 = Figure(Figure.FigureType.Knight, Tile.TileColor.White, Vector2(6,7))
 
-white_knight1 = Figure(Figure.FigureType.Knight, Tile.TileColor.White, Vector2(2,7))
-white_knight2 = Figure(Figure.FigureType.Knight, Tile.TileColor.White, Vector2(5,7))
+white_bishop1 = Figure(Figure.FigureType.Bishop, Tile.TileColor.White, Vector2(2,7))
+white_bishop2 = Figure(Figure.FigureType.Bishop, Tile.TileColor.White, Vector2(5,7))
 
 white_queen = Figure(Figure.FigureType.Queen, Tile.TileColor.White, Vector2(3,7))
 white_king = Figure(Figure.FigureType.King, Tile.TileColor.White, Vector2(4,7))
@@ -543,11 +538,11 @@ white_pieces = [
 black_rook1 = Figure(Figure.FigureType.Rook, Tile.TileColor.Black, Vector2(0,0))
 black_rook2 = Figure(Figure.FigureType.Rook, Tile.TileColor.Black, Vector2(7,0))
 
-black_bishop1 = Figure(Figure.FigureType.Bishop, Tile.TileColor.Black, Vector2(1,0))
-black_bishop2 = Figure(Figure.FigureType.Bishop, Tile.TileColor.Black, Vector2(6,0))
+black_knight1 = Figure(Figure.FigureType.Knight, Tile.TileColor.Black, Vector2(1,0))
+black_knight2 = Figure(Figure.FigureType.Knight, Tile.TileColor.Black, Vector2(6,0))
 
-black_knight1 = Figure(Figure.FigureType.Knight, Tile.TileColor.Black, Vector2(2,0))
-black_knight2 = Figure(Figure.FigureType.Knight, Tile.TileColor.Black, Vector2(5,0))
+black_bishop1 = Figure(Figure.FigureType.Bishop, Tile.TileColor.Black, Vector2(2,0))
+black_bishop2 = Figure(Figure.FigureType.Bishop, Tile.TileColor.Black, Vector2(5,0))
 
 black_queen = Figure(Figure.FigureType.Queen, Tile.TileColor.Black, Vector2(3,0))
 black_king = Figure(Figure.FigureType.King, Tile.TileColor.Black, Vector2(4,0))
