@@ -7,7 +7,6 @@ from misc.config import *
 from misc.images import *
 from misc.dictionary import *
 from copy import deepcopy
-import time
 from misc.sounds import *
 from stockfish import Stockfish
 from time import sleep
