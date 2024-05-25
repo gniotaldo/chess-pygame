@@ -9,19 +9,49 @@ from misc.dictionary import *
 from copy import deepcopy
 from misc.sounds import *
 from stockfish import Stockfish
-from time import sleep
+from time import sleep, time
 
+
+score = ["Evaluation", 0.3]
+therm_moving = False
+current_bar_height = 0.0
+target_bar_height = 0.3
+max_eval = 12.0
 
 def next_turn():
-    global turn, stockfish
-
+    global turn, stockfish, is_game_over, score, target_bar_height, speed
+    prev_score = deepcopy(score)
     info = stockfish.get_evaluation()
     evaluation = info['value']
     evaluation_type = info['type']
     if evaluation_type == 'mate':
+        score[0] = "Mate in "
+        score[1] = evaluation
         eval_button.text = f"Mate in {abs(evaluation)}"
     else:
         eval_button.text = f"Evaluation: {evaluation/100.00}"
+        score[0] = "Evaluation: "
+        score[1] = evaluation/100.00
+    if evaluation_type == 'draw':
+        is_game_over = True
+    print(score)
+
+    
+    
+    # Skalowanie przewagi do wysokości termometru
+    scaled_eval = max(min(score[1] / max_eval, 1.0), -1.0)  # Skalowanie do zakresu [-1, 1]
+    target_bar_height = scaled_eval * (therm_height / 2)
+    if score[0] == "Mate in " or prev_score[0] == "Mate in ":
+        speed = 10
+    else:
+        speed = abs(prev_score[1]-score[1])
+    
+    # Jeżeli jest mata, ustaw wysokość na pełny termometr
+    if score[0] == "Mate in ":
+        target_bar_height = -(therm_height / 2) if scaled_eval < 0 else therm_height / 2
+    
+    if is_game_over:
+        target_bar_height = 0.31/12.0 * (therm_height / 2)
 
     if turn == Tile.TileColor.White:
         turn = Tile.TileColor.Black
@@ -29,7 +59,6 @@ def next_turn():
     elif turn == Tile.TileColor.Black:
         turn = Tile.TileColor.White
         return True
-    
 
 def rotate_board():
     global rotated
@@ -52,6 +81,7 @@ def play_again():
     promotedTo = None
     is_game_over = False
     turn = Tile.TileColor.Black
+    stockfish.set_fen_position(fen(board))
     next_turn()
     previous_piece = None
     moves_counter = 0
@@ -66,7 +96,7 @@ def draw_board():
     if active_piece:
         active_piece.render(screen, TILE_SIZE, rotated, turn, previous_piece)  
     rotate_button.draw(screen, font)
-    active_piece_button.draw(screen, font)
+    #active_piece_button.draw(screen, font)
     eval_button.draw(screen, font)
 
 def draw_promotion_menu():
@@ -89,6 +119,7 @@ def draw_promotion_menu():
         button.draw(screen, font, previous_piece.color)
 
 def draw_game_over():
+        
         background = pygame.Surface((700, 300))
         background.set_alpha(240) 
         background.fill('black')
@@ -100,6 +131,35 @@ def draw_game_over():
         screen.blit(background, (50, 250))
         screen.blit(text,(270,300))
         game_over_button.draw(screen, font)
+
+
+# Parametry termometru
+therm_width = 30
+therm_height = 600
+therm_x = 900
+therm_y = 200
+mid_y = therm_y + therm_height / 2
+speed = 2
+
+def draw_thermometer():
+    global screen, current_bar_height, target_bar_height
+    
+    # Tło termometru (czarne)
+    pygame.draw.rect(screen, (30, 30, 30), (therm_x-1, therm_y-1, therm_width+2, therm_height+2))
+    
+    # Animacja: stopniowo zbliżaj bieżącą wysokość do docelowej
+    if abs(current_bar_height - target_bar_height) < speed:
+        current_bar_height = target_bar_height
+    elif current_bar_height < target_bar_height:
+        current_bar_height += speed
+    else:
+        current_bar_height -= speed
+    
+    # Rysowanie białego prostokąta
+    pygame.draw.rect(screen, (255, 255, 255), (therm_x, mid_y - current_bar_height, therm_width, therm_height / 2 + current_bar_height))
+    
+    # Rysowanie czerwonej linii na środku
+    pygame.draw.rect(screen, (255, 0, 0), (therm_x, mid_y-1, therm_width, 2))
 
 def game_over(board: Board):
     global previous_piece
@@ -128,6 +188,7 @@ def tick():
         draw_promotion_menu()
     if is_game_over:
         draw_game_over()
+    draw_thermometer()
     pygame.display.flip()
 
 def fen(board: Board):
@@ -165,7 +226,7 @@ def fen(board: Board):
             blanks += 1
     if blanks != 0:
         res += str(blanks)
-    move = "w " if turn == Tile.TileColor.White else "b "
+    move = "b " if turn == Tile.TileColor.White else "w "
     res += " " + move
 
     castles = ""
@@ -196,49 +257,49 @@ def ai_play():
     global white_captured, black_captured, board, previous_piece, moves_counter, is_game_over, stockfish
     
     move = stockfish.get_best_move()
+    if move:
+        from_x = int(ord(move[0])-97)
+        from_y = 8-int(move[1])
+        to_x = int(ord(move[2])-97)
+        to_y = 8-int(move[3])
 
-    from_x = int(ord(move[0])-97)
-    from_y = 8-int(move[1])
-    to_x = int(ord(move[2])-97)
-    to_y = 8-int(move[3])
-
-    piece: Figure = board.grid[from_x][from_y].content
-    board.grid[int(piece.position.x)][int(piece.position.y)].content = None
-    piece.move(to_x, to_y, white_captured, black_captured)
-    board.grid[to_x][to_y].content = piece
+        piece: Figure = board.grid[from_x][from_y].content
+        board.grid[int(piece.position.x)][int(piece.position.y)].content = None
+        piece.move(to_x, to_y, white_captured, black_captured)
+        board.grid[to_x][to_y].content = piece
 
 
-    if len(move) > 4:
-        promo_choice = move[4]
-        match promo_choice:
-            case 'q':
-                piece.figureType = Figure.FigureType.Queen
-            case 'n':
-                piece.figureType = Figure.FigureType.Knight
-            case 'b':
-                piece.figureType = Figure.FigureType.Bishop
-            case 'r':
-                piece.figureType = Figure.FigureType.Rook
+        if len(move) > 4:
+            promo_choice = move[4]
+            match promo_choice:
+                case 'q':
+                    piece.figureType = Figure.FigureType.Queen
+                case 'n':
+                    piece.figureType = Figure.FigureType.Knight
+                case 'b':
+                    piece.figureType = Figure.FigureType.Bishop
+                case 'r':
+                    piece.figureType = Figure.FigureType.Rook
 
-    piece.is_last_move = True
-    if previous_piece:
-        previous_piece.is_last_move = False
-    previous_piece = piece
+        piece.is_last_move = True
+        if previous_piece:
+            previous_piece.is_last_move = False
+        previous_piece = piece
 
-    next_turn()
-    is_game_over = game_over(board)
-    moves_counter += 1
+        next_turn()
+        is_game_over = game_over(board)
+        moves_counter += 1
 
 #main
 if __name__ == '__main__':
     
     
-    player_color = Tile.TileColor.Black
+    player_color = Tile.TileColor.White
 
     active_piece = None
     stockfish = Stockfish(ENGINE_PATH)
-    stockfish.set_depth(12)
-    stockfish.set_skill_level(AI_LEVEL)
+    #stockfish.set_skill_level(0)
+    stockfish.set_depth(10)
     rotated = False
     rotate_button.function = rotate_board
     game_over_button.function = play_again
@@ -257,13 +318,18 @@ if __name__ == '__main__':
     initialPieces = deepcopy(pieces)
     moves_counter = 0
     tick()
-    sleep(1)
+    if player_color == Tile.TileColor.Black:
+        sleep(1)
 
     while run:
 
-        if turn != player_color and not promotion:
+        '''
+        if turn != player_color and not promotion and not is_game_over:
             stockfish.set_fen_position(fen(board))
+            sleep(0.5)
             ai_play()
+
+        '''
         #event handling
         for event in pygame.event.get():
 
@@ -278,6 +344,7 @@ if __name__ == '__main__':
                                     previous_piece.figureType = promotedTo
                                     promotion = False
                                     promotedTo = None
+                                    is_game_over = game_over(board)
                 elif event.type == pygame.QUIT:
                     run = False
 
@@ -325,10 +392,16 @@ if __name__ == '__main__':
                                     previous_piece = active_piece
                                     board.grid[x][y].content = active_piece
                                     active_piece = None
+                                    
+                                    stockfish.set_fen_position(fen(board))
 
-                                    next_turn()
                                     is_game_over = game_over(board)
+                                    next_turn()
                                     moves_counter += 1
+                                    for piece2 in [black_pieces[0], black_pieces[1], white_pieces[0], white_pieces[1]]:
+                                        if piece2.position != Vector2(8,8):
+                                            board.grid[int(piece2.position.x)][int(piece2.position.y)].content = piece2
+                                    
 
                                 #select piece
                                 elif figure and figure.color == turn:
@@ -346,7 +419,7 @@ if __name__ == '__main__':
                                     else:
                                         active_piece = None
 
-            tick()
+        tick()
         
     pygame.quit()
 

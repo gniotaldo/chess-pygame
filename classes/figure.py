@@ -66,12 +66,12 @@ class Figure:
         if self.color == Tile.TileColor.Black:
             moves = [(self.position.x, self.position.y + 1),                                                    #move forward
                         (self.position.x + 1, self.position.y + 1), (self.position.x - 1, self.position.y + 1)]    #move diagonally (capture)
-            if not self.moves:
+            if not self.moves and not self.board.grid[int(self.position.x)][int(self.position.y+1)].content:
                 moves.append((self.position.x, self.position.y + 2))                                            #move forward 2 tiles on start
         else:
             moves = [(self.position.x, self.position.y - 1),
                         (self.position.x + 1, self.position.y - 1), (self.position.x - 1, self.position.y - 1)]
-            if not self.moves:
+            if not self.moves and not self.board.grid[int(self.position.x)][int(self.position.y-1)].content:
                 moves.append((self.position.x, self.position.y - 2))
 
         legal_moves = []
@@ -444,7 +444,7 @@ class Figure:
         x,y = pygame.mouse.get_pos()
         x = int(x/TILE_SIZE)
         y = int(y/TILE_SIZE)
-        if self.position == Vector2(x,y) and self.color == turn:
+        if ((not rotated and self.position == Vector2(x,y)) or (rotated and self.position == Vector2(7-x,7-y))) and self.color == turn:
             self.hovered = True
         else:
             self.hovered = False
@@ -494,7 +494,10 @@ class Figure:
             surface = pygame.Surface((size, size))
             surface.set_alpha(30) 
             surface.fill((255, 255, 255))
-            screen.blit(surface, (self.position.x*size, self.position.y*size))
+            if rotated:
+                screen.blit(surface, ((7-self.position.x)*size, (7-self.position.y)*size))
+            else:
+                screen.blit(surface, (self.position.x*size, self.position.y*size))
 
 
 

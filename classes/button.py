@@ -60,7 +60,7 @@ class Button:
 
 rotate_button = Button(WIDTH+20, 50, 150, 50, "Rotate Board", (0, 255, 0), (0, 200, 0), (0, 0, 0), True, None)
 active_piece_button = Button(WIDTH+20, 150, 100, 50, " ", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None)
-eval_button = Button(WIDTH+40, 250, 100, 50, "Evaluation: 0.3", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None)
+eval_button = Button(WIDTH+40, 100, 100, 50, "Evaluation: 0.3", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None)
 promotion_queen = Button(125, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
 promotion_rook = Button(275, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
 promotion_knight = Button(425, 350, 100, 100, "", (0, 0, 0), (0, 0, 0), (255, 255, 255), False, None) 
